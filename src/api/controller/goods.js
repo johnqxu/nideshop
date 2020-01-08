@@ -32,7 +32,7 @@ module.exports = class extends Base {
 
     const info = await model.where({'id': goodsId}).find();
     const gallery = await this.model('goods_gallery').where({goods_id: goodsId}).limit(4).select();
-    const attribute = await this.model('goods_attribute').field('nideshop_goods_attribute.value, nideshop_attribute.name').join('nideshop_attribute ON nideshop_goods_attribute.attribute_id=nideshop_attribute.id').order({'nideshop_goods_attribute.id': 'asc'}).where({'nideshop_goods_attribute.goods_id': goodsId}).select();
+    const attribute = await this.model('goods_attribute').field('nideshop_goods_attribute.value, nideshop_attribute.name').join('nideshop_attribute ON nideshop_goods_attribute.attribute_id=nideshop_attribute.id').order({'nideshop_attribute.sort_order': 'asc'}).where({'nideshop_goods_attribute.goods_id': goodsId}).select();
     const issue = await this.model('goods_issue').select();
     const brand = await this.model('brand').where({id: info.brand_id}).find();
     const commentCount = await this.model('comment').where({value_id: goodsId, type_id: 0}).count();
@@ -170,7 +170,7 @@ module.exports = class extends Base {
     }
 
     // 搜索到的商品
-    const goodsData = await goodsQuery.where(whereMap).field(['id', 'name', 'list_pic_url', 'retail_price']).order(orderMap).page(page, size).countSelect();
+    const goodsData = await goodsQuery.where(whereMap).field(['id', 'name', 'list_pic_url', 'retail_price' , 'goods_sn']).order(orderMap).page(page, size).countSelect();
     goodsData.filterCategory = filterCategory.map(function(v) {
       v.checked = (think.isEmpty(categoryId) && v.id === 0) || v.id === parseInt(categoryId);
       return v;
@@ -270,7 +270,7 @@ module.exports = class extends Base {
     if (think.isEmpty(relatedGoodsIds)) {
       // 查找同分类下的商品
       const goodsCategory = await model.where({id: goodsId}).find();
-      relatedGoods = await model.where({category_id: goodsCategory.category_id}).field(['id', 'name', 'list_pic_url', 'retail_price']).limit(8).select();
+      relatedGoods = await model.where({category_id: goodsCategory.category_id}).field(['id', 'name', 'list_pic_url', 'retail_price','goods_sn']).limit(8).select();
     } else {
       relatedGoods = await model.where({id: ['IN', relatedGoodsIds]}).field(['id', 'name', 'list_pic_url', 'retail_price']).select();
     }
