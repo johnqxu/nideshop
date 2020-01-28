@@ -33,26 +33,6 @@ module.exports = class extends Base {
     const info = await model.where({'id': goodsId}).find();
     const gallery = await this.model('goods_gallery').where({goods_id: goodsId}).limit(4).select();
     const attribute = await this.model('goods_attribute').field('nideshop_goods_attribute.value, nideshop_attribute.name').join('nideshop_attribute ON nideshop_goods_attribute.attribute_id=nideshop_attribute.id').order({'nideshop_attribute.sort_order': 'asc'}).where({'nideshop_goods_attribute.goods_id': goodsId}).select();
-    const issue = await this.model('goods_issue').select();
-    const brand = await this.model('brand').where({id: info.brand_id}).find();
-    const commentCount = await this.model('comment').where({value_id: goodsId, type_id: 0}).count();
-    const hotComment = await this.model('comment').where({value_id: goodsId, type_id: 0}).find();
-    let commentInfo = {};
-    if (!think.isEmpty(hotComment)) {
-      const commentUser = await this.model('user').field(['nickname', 'username', 'avatar']).where({id: hotComment.user_id}).find();
-      commentInfo = {
-        content: Buffer.from(hotComment.content, 'base64').toString(),
-        add_time: think.datetime(new Date(hotComment.add_time * 1000)),
-        nickname: commentUser.nickname,
-        avatar: commentUser.avatar,
-        pic_list: await this.model('comment_picture').where({comment_id: hotComment.id}).select()
-      };
-    }
-
-    const comment = {
-      count: commentCount,
-      data: commentInfo
-    };
 
     // 当前用户是否收藏
     const userHasCollect = await this.model('collect').isUserHasCollect(this.getLoginUserId(), 0, goodsId);
@@ -66,10 +46,6 @@ module.exports = class extends Base {
       gallery: gallery,
       attribute: attribute,
       userHasCollect: userHasCollect,
-      issue: issue,
-      comment: comment,
-      brand: brand,
-      specificationList: await model.getSpecificationList(goodsId),
       productList: await model.getProductList(goodsId)
     });
   }
