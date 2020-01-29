@@ -36,6 +36,29 @@ module.exports = class extends Base {
   }
 
   /**
+   * 商品详情页的大家都在看的商品
+   * @returns {Promise.<Promise|PreventPromise|void>}
+   */
+  async relatedAction() {
+    // 大家都在看商品,取出关联表的商品，如果没有则随机取同分类下的商品
+    const model = this.model('goods');
+    const goodsId = this.get('id');
+    const relatedGoodsIds = await this.model('related_goods').where({goods_id: goodsId}).getField('related_goods_id');
+    let relatedGoods = null;
+    if (think.isEmpty(relatedGoodsIds)) {
+      // 查找同分类下的商品
+      const goodsCategory = await model.where({id: goodsId}).find();
+      relatedGoods = await model.where({category_id: goodsCategory.category_id}).field(['id', 'name', 'list_pic_url','goods_sn']).limit(8).select();
+    } else {
+      relatedGoods = await model.where({id: ['IN', relatedGoodsIds]}).field(['id', 'name', 'list_pic_url']).select();
+    }
+
+    return this.success({
+      goodsList: relatedGoods
+    });
+  }
+
+  /**
    * 获取分类下的商品
    * @returns {Promise.<*>}
    */
@@ -215,29 +238,6 @@ module.exports = class extends Base {
         name: '大家都在买的严选好物',
         img_url: 'http://yanxuan.nosdn.127.net/8976116db321744084774643a933c5ce.png'
       }
-    });
-  }
-
-  /**
-   * 商品详情页的大家都在看的商品
-   * @returns {Promise.<Promise|PreventPromise|void>}
-   */
-  async relatedAction() {
-    // 大家都在看商品,取出关联表的商品，如果没有则随机取同分类下的商品
-    const model = this.model('goods');
-    const goodsId = this.get('id');
-    const relatedGoodsIds = await this.model('related_goods').where({goods_id: goodsId}).getField('related_goods_id');
-    let relatedGoods = null;
-    if (think.isEmpty(relatedGoodsIds)) {
-      // 查找同分类下的商品
-      const goodsCategory = await model.where({id: goodsId}).find();
-      relatedGoods = await model.where({category_id: goodsCategory.category_id}).field(['id', 'name', 'list_pic_url', 'retail_price','goods_sn']).limit(8).select();
-    } else {
-      relatedGoods = await model.where({id: ['IN', relatedGoodsIds]}).field(['id', 'name', 'list_pic_url', 'retail_price']).select();
-    }
-
-    return this.success({
-      goodsList: relatedGoods
     });
   }
 
