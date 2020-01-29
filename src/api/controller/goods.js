@@ -9,20 +9,6 @@ module.exports = class extends Base {
   }
 
   /**
-   * 获取sku信息，用于购物车编辑时选择规格
-   * @returns {Promise.<Promise|PreventPromise|void>}
-   */
-  async skuAction() {
-    const goodsId = this.get('id');
-    const model = this.model('goods');
-
-    return this.success({
-      specificationList: await model.getSpecificationList(goodsId),
-      productList: await model.getProductList(goodsId)
-    });
-  }
-
-  /**
    * 商品详情页数据
    * @returns {Promise.<Promise|PreventPromise|void>}
    */
@@ -45,8 +31,7 @@ module.exports = class extends Base {
       info: info,
       gallery: gallery,
       attribute: attribute,
-      userHasCollect: userHasCollect,
-      productList: await model.getProductList(goodsId)
+      userHasCollect: userHasCollect
     });
   }
 
