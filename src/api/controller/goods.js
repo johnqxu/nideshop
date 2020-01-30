@@ -53,8 +53,19 @@ module.exports = class extends Base {
       relatedGoods = await model.where({id: ['IN', relatedGoodsIds]}).field(['id', 'name', 'list_pic_url']).select();
     }
 
+    return this.success({      goodsList: relatedGoods
+    });
+  }
+
+  /**
+   * 在售的商品总数
+   * @returns {Promise.<Promise|PreventPromise|void>}
+   */
+  async countAction() {
+    const goodsCount = await this.model('goods').where({is_delete: 0}).count('id');
+
     return this.success({
-      goodsList: relatedGoods
+      goodsCount: goodsCount
     });
   }
 
@@ -241,15 +252,5 @@ module.exports = class extends Base {
     });
   }
 
-  /**
-   * 在售的商品总数
-   * @returns {Promise.<Promise|PreventPromise|void>}
-   */
-  async countAction() {
-    const goodsCount = await this.model('goods').where({is_delete: 0, is_on_sale: 1}).count('id');
 
-    return this.success({
-      goodsCount: goodsCount
-    });
-  }
 };
