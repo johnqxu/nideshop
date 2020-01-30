@@ -76,12 +76,10 @@ module.exports = class extends Base {
   async categoryAction() {
     const model = this.model('category');
     const currentCategory = await model.where({id: this.get('id')}).find();
-    const parentCategory = await model.where({id: currentCategory.parent_id}).find();
-    const brotherCategory = await model.where({parent_id: currentCategory.parent_id}).select();
+    const brotherCategory = await model.where({}).select();
 
     return this.success({
       currentCategory: currentCategory,
-      parentCategory: parentCategory,
       brotherCategory: brotherCategory
     });
   }
@@ -92,7 +90,6 @@ module.exports = class extends Base {
    */
   async listAction() {
     const categoryId = this.get('categoryId');
-    const brandId = this.get('brandId');
     const keyword = this.get('keyword');
     const isNew = this.get('isNew');
     const isHot = this.get('isHot');
@@ -122,10 +119,6 @@ module.exports = class extends Base {
       });
     }
 
-    if (!think.isEmpty(brandId)) {
-      whereMap.brand_id = brandId;
-    }
-
     // 排序
     let orderMap = {};
     if (sort === 'price') {
@@ -147,21 +140,21 @@ module.exports = class extends Base {
       'checked': false
     }];
 
-    const categoryIds = await goodsQuery.where(whereMap).getField('category_id', 10000);
-    if (!think.isEmpty(categoryIds)) {
-      // 查找二级分类的parent_id
-      const parentIds = await this.model('category').where({id: {'in': categoryIds}}).getField('parent_id', 10000);
-      // 一级分类
-      const parentCategory = await this.model('category').field(['id', 'name']).order({'sort_order': 'asc'}).where({'id': {'in': parentIds}}).select();
+    // const categoryIds = await goodsQuery.where(whereMap).getField('category_id', 10000);
+    // if (!think.isEmpty(categoryIds)) {
+      // // 查找二级分类的parent_id
+      // const parentIds = await this.model('category').where({id: {'in': categoryIds}}).getField('parent_id', 10000);
+      // // 一级分类
+      // const parentCategory = await this.model('category').field(['id', 'name']).order({'sort_order': 'asc'}).where({'id': {'in': parentIds}}).select();
 
-      if (!think.isEmpty(parentCategory)) {
-        filterCategory = filterCategory.concat(parentCategory);
-      }
-    }
+      // if (!think.isEmpty(parentCategory)) {
+      //   filterCategory = filterCategory.concat(parentCategory);
+      // }
+    // }
 
     // 加入分类条件
     if (!think.isEmpty(categoryId) && parseInt(categoryId) > 0) {
-      whereMap.category_id = ['in', await this.model('category').getCategoryWhereIn(categoryId)];
+      whereMap.category_id = ['=', categoryId];
     }
 
     // 搜索到的商品
