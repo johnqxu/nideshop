@@ -17,6 +17,28 @@ module.exports = class extends Base {
     const model = this.model('goods');
 
     const info = await model.where({'id': goodsId}).find();
+    var statusDesc = '';
+    switch (info.status) {
+      case 0:
+        statusDesc = '正常';
+        break;
+      case 1:
+        statusDesc = '占用中';
+        break;
+      case 2:
+        statusDesc = '外借中';
+        break;
+      case 3:
+        statusDesc = '已保留';
+        break;
+      case 4:
+        statusDesc = '维护中';
+        break;
+      default:
+        statusDesc = '正常';
+        break;
+    }
+    info.statusDesc = statusDesc;
     const gallery = await this.model('goods_gallery').where({goods_id: goodsId}).limit(4).select();
     const attribute = await this.model('goods_attribute').field('nideshop_goods_attribute.value, nideshop_attribute.name').join('nideshop_attribute ON nideshop_goods_attribute.attribute_id=nideshop_attribute.id').order({'nideshop_attribute.sort_order': 'asc'}).where({'nideshop_goods_attribute.goods_id': goodsId}).select();
 
@@ -140,30 +162,42 @@ module.exports = class extends Base {
       'checked': false
     }];
 
-    // const categoryIds = await goodsQuery.where(whereMap).getField('category_id', 10000);
-    // if (!think.isEmpty(categoryIds)) {
-      // // 查找二级分类的parent_id
-      // const parentIds = await this.model('category').where({id: {'in': categoryIds}}).getField('parent_id', 10000);
-      // // 一级分类
-      // const parentCategory = await this.model('category').field(['id', 'name']).order({'sort_order': 'asc'}).where({'id': {'in': parentIds}}).select();
-
-      // if (!think.isEmpty(parentCategory)) {
-      //   filterCategory = filterCategory.concat(parentCategory);
-      // }
-    // }
-
     // 加入分类条件
     if (!think.isEmpty(categoryId) && parseInt(categoryId) > 0) {
       whereMap.category_id = ['=', categoryId];
     }
 
     // 搜索到的商品
-    const goodsData = await goodsQuery.where(whereMap).field(['id', 'name', 'list_pic_url', 'retail_price' , 'goods_sn']).order(orderMap).page(page, size).countSelect();
+    const goodsData = await goodsQuery.where(whereMap).field(['id', 'name', 'list_pic_url', 'retail_price' , 'goods_sn','status']).order(orderMap).page(page, size).countSelect();
     goodsData.filterCategory = filterCategory.map(function(v) {
       v.checked = (think.isEmpty(categoryId) && v.id === 0) || v.id === parseInt(categoryId);
       return v;
     });
-    goodsData.goodsList = goodsData.data;
+    goodsData.goodsList = goodsData.data.map(function(g){
+      var statusDesc = '';
+      switch (g.status) {
+        case 0:
+          statusDesc = '正常';
+          break;
+        case 1:
+          statusDesc = '占用中';
+          break;
+        case 2:
+          statusDesc = '外借中';
+          break;
+        case 3:
+          statusDesc = '已保留';
+          break;
+        case 4:
+          statusDesc = '维护中';
+          break;
+        default:
+          statusDesc = '正常';
+          break;
+      }
+      g.statusDesc=statusDesc;
+      return g;
+    });
 
     return this.success(goodsData);
   }
