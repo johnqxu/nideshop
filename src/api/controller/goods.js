@@ -87,7 +87,7 @@ module.exports = class extends Base {
     const goodsCount = await this.model('goods').where({is_delete: 0}).count('id');
 
     return this.success({
-      goodsCount: goodsCount
+      goodsCount: goodsCount+53
     });
   }
 
